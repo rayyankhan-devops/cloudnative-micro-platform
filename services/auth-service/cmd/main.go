@@ -47,6 +47,9 @@ func main() {
 	mux.HandleFunc("/api/auth/health", func(w http.ResponseWriter, r *http.Request) {
 		authHandler.Health(w, r)
 	})
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		authHandler.Health(w, r)
+	})
 
 	serverAddr := fmt.Sprintf(":%s", cfg.Port)
 	log.Printf("=================================")

@@ -1,4 +1,4 @@
-const API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:8000';
+const API_GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || '';
 
 async function request(endpoint, options = {}) {
   const url = `${API_GATEWAY_URL}${endpoint}`;
