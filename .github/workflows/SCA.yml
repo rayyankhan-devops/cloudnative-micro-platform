@@ -1,0 +1,90 @@
+name: SCA-check
+
+on:
+  workflow_call:
+
+jobs:
+
+  sca-javascript:
+    name: SCA - ${{ matrix.folder }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        folder:
+          - frontend
+          - gateway
+          - services/payment-service
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.folder }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ${{ matrix.folder }}/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+
+  sca-go:
+    name: SCA - Go
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache: true
+          cache-dependency-path: services/auth-service/go.sum
+
+      - name: Install govulncheck
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+
+      - name: Run Go SCA
+        working-directory: services/auth-service
+        run: govulncheck ./...
+
+  sca-python:
+    name: SCA - Python
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/product-service/requirements.txt
+
+      - name: Install Dependencies
+        working-directory: services/product-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Run Python SCA
+        working-directory: services/product-service
+        run: pip-audit -r requirements.txt
