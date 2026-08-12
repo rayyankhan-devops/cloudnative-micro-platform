@@ -1,0 +1,15 @@
+[MAIN]
+init-hook='import sys; sys.path.append(".")'
+
+[MESSAGES CONTROL]
+disable=
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-few-public-methods,
+    invalid-name,
+    line-too-long,
+    logging-fstring-interpolation,
+    f-string-without-interpolation,
+    broad-exception-caught,
+    unused-variable

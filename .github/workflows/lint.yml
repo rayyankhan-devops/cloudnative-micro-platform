@@ -87,4 +87,4 @@ jobs:
 
       - name: Run Pylint
         working-directory: services/product-service
-        run: pylint app/
+        run: PYTHONPATH=. pylint app/
