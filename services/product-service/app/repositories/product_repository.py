@@ -52,7 +52,7 @@ class ProductRepository:
         try:
             self.engine = create_engine(settings.DATABASE_URL, connect_args={"connect_timeout": 3})
             self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-            
+
             # Test connection
             with self.engine.connect() as conn:
                 self.db_available = True
@@ -67,7 +67,7 @@ class ProductRepository:
     def _seed_data(self):
         if not self.db_available or not self.SessionLocal:
             return
-        
+
         session = self.SessionLocal()
         try:
             count = session.query(ProductORM).count()

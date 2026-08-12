@@ -12,4 +12,5 @@ disable=
     logging-fstring-interpolation,
     f-string-without-interpolation,
     broad-exception-caught,
-    unused-variable
+    unused-variable,
+    trailing-whitespace
