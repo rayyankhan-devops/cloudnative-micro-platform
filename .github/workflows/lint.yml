@@ -14,7 +14,7 @@ jobs:
         folder:
           - frontend
           - gateway
-          - service/payment-service
+          - services/payment-service
 
     defaults:
       run:
@@ -52,14 +52,14 @@ jobs:
         with:
           go-version: "1.25"
           cache: true
-          cache-dependency-path: service/auth-service/go.sum
+          cache-dependency-path: services/auth-service/go.sum
 
       - name: Install Dependencies
-        working-directory: service/auth-service
+        working-directory: services/auth-service
         run: go mod download
 
       - name: Run Go Vet
-        working-directory: service/auth-service
+        working-directory: services/auth-service
         run: go vet ./...
 
 
@@ -77,12 +77,12 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: service/product-service/requirements.txt
+          cache-dependency-path: services/product-service/requirements.txt
 
       - name: Install Dependencies
-        working-directory: service/product-service
+        working-directory: services/product-service
         run: pip install -r requirements.txt
 
       - name: Run Pylint
-        working-directory: service/product-service
+        working-directory: services/product-service
         run: pylint .

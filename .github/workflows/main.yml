@@ -1,4 +1,4 @@
-name: Meme-Generator-CI
+name: Cloudnative-CI
 
 on:
   push:
