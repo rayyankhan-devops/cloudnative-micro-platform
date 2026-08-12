@@ -63,3 +63,9 @@ jobs:
     needs: [docker-scan]
     uses: ./.github/workflows/docker-push.yml
     secrets: inherit
+
+  deploy:
+    name: Continuous Deployment
+    needs: [docker-push]
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
