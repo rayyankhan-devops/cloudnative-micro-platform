@@ -6,3 +6,4 @@ pg8000
 python-dotenv
 msgpack>=1.2.1
 setuptools>=83.0.0
+pylint

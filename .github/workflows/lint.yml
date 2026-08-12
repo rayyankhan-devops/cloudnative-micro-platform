@@ -81,8 +81,10 @@ jobs:
 
       - name: Install Dependencies
         working-directory: services/product-service
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Run Pylint
         working-directory: services/product-service
-        run: pylint .
+        run: pylint app/
