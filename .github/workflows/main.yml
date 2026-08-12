@@ -7,17 +7,33 @@ on:
     branches: [ main ]
 
 jobs:
+
   secret-scanning:
+    name: Secret Scanning
     uses: ./.github/workflows/secret-scan.yml
 
   lint:
+    name: Code Linting
     needs: [secret-scanning]
     uses: ./.github/workflows/lint.yml
 
   code-test:
+    name: Unit & Integration Tests
     needs: [lint]
     uses: ./.github/workflows/code-test.yml
 
-  SCA:
-    needs: [lint,secret-scanning,code-test]
+  sca-scan:
+    name: Software Composition Analysis (SCA)
+    needs: [lint]
     uses: ./.github/workflows/SCA.yml
+
+  code-ql:
+    name: CodeQL Security Scan
+    needs: [code-test]
+    uses: ./.github/workflows/code-ql.yml
+
+  sonar-scan:
+    name: SonarQube Code Analysis
+    needs: [code-test]
+    uses: ./.github/workflows/sonarcube.yml
+    secrets: inherit
