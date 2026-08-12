@@ -1,0 +1,40 @@
+name: owasp-zap-scan
+
+on:
+  workflow_call:
+    inputs:
+      target_url:
+        description: 'URL of the deployed application to scan'
+        required: false
+        type: string
+        default: 'http://localhost:3000'
+    secrets:
+      APP_URL:
+        required: false
+
+jobs:
+  zap-scan:
+    name: OWASP ZAP DAST Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: '${{ secrets.APP_URL || inputs.target_url }}'
+          allow_issue_writing: false
+          fail_action: false
+          cmd_options: '-a'
+
+      - name: Upload OWASP ZAP Scan Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-zap-report
+          path: |
+            zap_report.html
+            zap_report.json
+          retention-days: 5

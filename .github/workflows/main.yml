@@ -69,3 +69,11 @@ jobs:
     needs: [docker-push]
     uses: ./.github/workflows/deploy.yml
     secrets: inherit
+
+  owasp-zap:
+    name: OWASP ZAP DAST Scan
+    needs: [deploy]
+    uses: ./.github/workflows/zap-scan.yml
+    with:
+      target_url: ${{ secrets.APP_URL }}
+    secrets: inherit
