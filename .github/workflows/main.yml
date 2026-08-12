@@ -49,5 +49,17 @@ jobs:
 
   hadolint:
     name: Hadolint Dockerfile Linting
-    needs: [lint ,code-test ,sonar-scan , secret-scanning , code-ql , sca-scan]
+    needs: [code-test]
     uses: ./.github/workflows/docker-hadolint.yml
+
+  docker-scan:
+    name: Docker Security Scan (Trivy)
+    needs: [hadolint]
+    uses: ./.github/workflows/docker-scan.yml
+    secrets: inherit
+
+  docker-push:
+    name: Push Docker Images
+    needs: [docker-scan]
+    uses: ./.github/workflows/docker-push.yml
+    secrets: inherit
