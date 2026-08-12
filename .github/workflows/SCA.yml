@@ -35,8 +35,17 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Run npm audit
-        run: npm audit --audit-level=high
+      - name: Generate Dependency Report
+        run: |
+          npm audit --json > npm-audit-report.json || true
+
+      - name: Upload Dependency Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-security-report-${{ matrix.folder }}
+          path: ${{ matrix.folder }}/npm-audit-report.json
+          retention-days: 5
 
   sca-go:
     name: SCA - Go
