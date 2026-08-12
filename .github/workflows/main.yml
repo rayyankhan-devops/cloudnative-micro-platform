@@ -46,3 +46,8 @@ jobs:
     needs: [code-test]
     uses: ./.github/workflows/sonarcube.yml
     secrets: inherit
+
+  hadolint:
+    name: Hadolint Dockerfile Linting
+    needs: [lint ,code-test ,sonar-scan , secret-scanning , code-ql , sca-scan]
+    uses: ./.github/workflows/docker-hadolint.yml
