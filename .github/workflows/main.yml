@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 jobs:
 
   secret-scanning:
@@ -30,6 +35,10 @@ jobs:
   code-ql:
     name: CodeQL Security Scan
     needs: [code-test]
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
     uses: ./.github/workflows/code-ql.yml
 
   sonar-scan:
