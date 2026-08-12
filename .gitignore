@@ -5,9 +5,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .pnpm-debug.log*
-.github/workflows/*
-.github
-.github/workflows
+// .github/workflows/*
+// .github
+// .github/workflows
 
 # Environment Variables
 .env

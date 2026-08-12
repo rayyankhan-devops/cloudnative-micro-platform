@@ -1,0 +1,54 @@
+name: Meme-Generator-CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  secret-scanning:
+    uses: ./.github/workflows/secret-scan.yml
+
+  lint:
+    needs: [secret-scanning]
+    uses: ./.github/workflows/lint.yml
+
+
+
+  # code-test:
+  #   uses: ./.github/workflows/code-test.yml
+
+
+  # dep-scanning:
+  #   needs: [lint]
+  #   uses: ./.github/workflows/dep-check.yml
+
+  # code-scan:
+  #   needs: [lint, code-test]
+  #   uses: ./.github/workflows/code-scan.yml
+
+  # sonar-scan:
+  #   needs: [lint, code-test]
+  #   uses: ./.github/workflows/sonarcube.yml
+  #   secrets: inherit
+
+  # hadolint-scan:
+  #   needs: [lint, code-test]
+  #   uses: ./.github/workflows/docker-hadolint.yml
+
+  # docker-scan:
+  #   needs: [hadolint-scan, secret-scanning, code-test]
+  #   uses: ./.github/workflows/docker-scan.yml
+  #   secrets: inherit
+
+  # docker-push:
+  #   needs: [docker-scan, sonar-scan, dep-scanning]
+  #   uses: ./.github/workflows/docker-push.yml
+  #   secrets: inherit
+
+  # deploy:
+  #   needs: [docker-push]
+  #   uses: ./.github/workflows/deploy.yml
+  #   secrets: inherit
