@@ -23,7 +23,7 @@ jobs:
         run: docker compose build
 
       - name: Deploy containers
-        run: docker compose up -d --force-recreate
+        run: docker compose up -d --build --force-recreate
 
       - name: Show running containers
         run: docker compose ps
