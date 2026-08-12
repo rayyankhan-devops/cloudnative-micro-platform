@@ -17,8 +17,9 @@ jobs:
 
 
 
-  # code-test:
-  #   uses: ./.github/workflows/code-test.yml
+  code-test:
+    needs: [lint]
+    uses: ./.github/workflows/code-test.yml
 
 
   # dep-scanning:
