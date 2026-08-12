@@ -74,6 +74,4 @@ jobs:
     name: OWASP ZAP DAST Scan
     needs: [deploy]
     uses: ./.github/workflows/zap-scan.yml
-    with:
-      target_url: ${{ secrets.APP_URL }}
     secrets: inherit
