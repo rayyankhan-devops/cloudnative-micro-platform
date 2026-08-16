@@ -1,55 +1,76 @@
-pipeline{
-    agent { label "dev" }
+pipeline {
+    agent { label 'dev' }
 
-    stages{
-        stage("Clone Code") {
-            steps{
-                echo "Cloning Code to jenkings workspace"
-                git url: 'https://github.com/rayyankhan-devops/cloudnative-micro-platform.git', branch: 'main'
+    options {
+        skipDefaultCheckout(true)
+    }
+
+    stages {
+        stage('Clone Code') {
+            steps {
+                echo 'Cloning code to Jenkins workspace'
+                git branch: 'main',
+                    url: 'https://github.com/rayyankhan-devops/cloudnative-micro-platform.git'
             }
         }
-        stage("linting") {
-            steps{
-                echo "Running linting checks"
+
+        stage('Linting') {
+            steps {
+                echo 'Running linting checks'
+
                 dir('frontend') {
-                    sh 'npm install'
+                    sh 'npm ci'
                     sh 'npm run lint'
                 }
+
                 dir('gateway') {
-                    sh 'npm install'
+                    sh 'npm ci'
                     sh 'npm run lint'
                 }
+
                 dir('services/payment-service') {
-                    sh 'npm install'
+                    sh 'npm ci'
                     sh 'npm run lint'
                 }
+
                 dir('services/auth-service') {
                     sh 'go mod download'
                     sh 'go vet ./...'
                 }
+
                 dir('services/product-service') {
-                    sh 'pip install -r requirements.txt'
-                    sh 'PYTHONPATH=. pylint app/'
+                    sh '''
+                        python3 -m venv .venv
+                        .venv/bin/python -m pip install --upgrade pip
+                        .venv/bin/python -m pip install -r requirements.txt
+                        PYTHONPATH=.venv/bin/python -m pylint app/
+                    '''
                 }
             }
         }
-        stage("testing") {
-            steps{
-                echo "Running testing checks"
+
+        stage('Testing') {
+            steps {
+                echo 'Running test checks'
+
                 dir('frontend') {
                     sh 'npm test'
                 }
+
                 dir('gateway') {
                     sh 'npm test'
                 }
+
                 dir('services/payment-service') {
                     sh 'npm test'
                 }
+
                 dir('services/auth-service') {
                     sh 'go test ./...'
                 }
+
                 dir('services/product-service') {
-                    sh 'PYTHONPATH=. pytest'
+                    sh 'PYTHONPATH=. .venv/bin/python -m pytest'
                 }
             }
         }
