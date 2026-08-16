@@ -455,5 +455,49 @@ pipeline {
                 '''
             }
         }
+
+        // Dynamic Application Security Testing (DAST) via OWASP ZAP
+        stage('OWASP ZAP DAST Scan') {
+            steps {
+                echo 'Starting OWASP ZAP dynamic security scans on deployed services...'
+                sh '''
+                    mkdir -p ${WORKSPACE}/zap-reports
+                    chmod 777 ${WORKSPACE}/zap-reports
+                '''
+                script {
+                    parallel(
+                        'Frontend DAST Scan': {
+                            sh '''
+                                docker run --rm --network=host \
+                                  -v ${WORKSPACE}/zap-reports:/zap/wrk/:rw \
+                                  -t ghcr.io/zaproxy/zaproxy:stable \
+                                  zap-baseline.py -t http://100.55.149.140:3000 -r frontend_zap_report.html -J frontend_zap_report.json -I || true
+                            '''
+                        },
+                        'API Gateway DAST Scan': {
+                            sh '''
+                                docker run --rm --network=host \
+                                  -v ${WORKSPACE}/zap-reports:/zap/wrk/:rw \
+                                  -t ghcr.io/zaproxy/zaproxy:stable \
+                                  zap-baseline.py -t http://100.55.149.140:8000 -r gateway_zap_report.html -J gateway_zap_report.json -I || true
+                            '''
+                        },
+                        'Product API DAST Scan': {
+                            sh '''
+                                docker run --rm --network=host \
+                                  -v ${WORKSPACE}/zap-reports:/zap/wrk/:rw \
+                                  -t ghcr.io/zaproxy/zaproxy:stable \
+                                  zap-api-scan.py -t http://100.55.149.140:8002/openapi.json -f openapi -r product_api_zap_report.html -J product_api_zap_report.json -I || true
+                            '''
+                        }
+                    )
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'zap-reports/**', allowEmptyArchive: true
+                }
+            }
+        }
     }
 }
