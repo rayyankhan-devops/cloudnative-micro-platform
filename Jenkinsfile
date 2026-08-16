@@ -15,62 +15,98 @@ pipeline {
         }
 
         stage('Linting') {
-            steps {
-                echo 'Running linting checks'
-
-                dir('frontend') {
-                    sh 'npm install'
-                    sh 'npm run lint'
+            parallel {
+                stage('Frontend Lint') {
+                    steps {
+                        dir('frontend') {
+                            sh 'npm install'
+                            sh 'npm run lint'
+                        }
+                    }
                 }
 
-                dir('gateway') {
-                    sh 'npm install'
-                    sh 'npm run lint'
+                stage('Gateway Lint') {
+                    steps {
+                        dir('gateway') {
+                            sh 'npm install'
+                            sh 'npm run lint'
+                        }
+                    }
                 }
 
-                dir('services/payment-service') {
-                    sh 'npm install'
-                    sh 'npm run lint'
+                stage('Payment Service Lint') {
+                    steps {
+                        dir('services/payment-service') {
+                            sh 'npm install'
+                            sh 'npm run lint'
+                        }
+                    }
                 }
 
-                dir('services/auth-service') {
-                    sh 'go mod download'
-                    sh 'go vet ./...'
+                stage('Auth Service Lint') {
+                    steps {
+                        dir('services/auth-service') {
+                            sh 'go mod download'
+                            sh 'go vet ./...'
+                        }
+                    }
                 }
 
-                dir('services/product-service') {
-                    sh '''
-                        python3 -m venv .venv
-                        .venv/bin/python -m pip install --upgrade pip
-                        .venv/bin/python -m pip install -r requirements.txt
-                        PYTHONPATH=. .venv/bin/python -m pylint app/
-                    '''
+                stage('Product Service Lint') {
+                    steps {
+                        dir('services/product-service') {
+                            sh '''
+                                python3 -m venv .venv
+                                .venv/bin/python -m pip install --upgrade pip
+                                .venv/bin/python -m pip install -r requirements.txt
+                                PYTHONPATH=. .venv/bin/python -m pylint app/
+                            '''
+                        }
+                    }
                 }
             }
         }
 
         stage('Testing') {
-            steps {
-                echo 'Running test checks'
-
-                dir('frontend') {
-                    sh 'npm test'
+            parallel {
+                stage('Frontend Tests') {
+                    steps {
+                        dir('frontend') {
+                            sh 'npm test'
+                        }
+                    }
                 }
 
-                dir('gateway') {
-                    sh 'npm test'
+                stage('Gateway Tests') {
+                    steps {
+                        dir('gateway') {
+                            sh 'npm test'
+                        }
+                    }
                 }
 
-                dir('services/payment-service') {
-                    sh 'npm test'
+                stage('Payment Service Tests') {
+                    steps {
+                        dir('services/payment-service') {
+                            sh 'npm test'
+                        }
+                    }
                 }
 
-                dir('services/auth-service') {
-                    sh 'go test ./...'
+                stage('Auth Service Tests') {
+                    steps {
+                        dir('services/auth-service') {
+                            sh 'go test ./...'
+                        }
+                    }
                 }
 
-                dir('services/product-service') {
-                    sh 'PYTHONPATH=. .venv/bin/python -m pytest'
+                stage('Product Service Tests') {
+                    steps {
+                        dir('services/product-service') {
+                            sh 'PYTHONPATH=. .venv/bin/python -m pytest'
+                        }
+                    }
                 }
             }
         }
