@@ -1,0 +1,10 @@
+pipeline{
+    agent { label "dev" }
+
+    stages{
+        steps{
+            echo "Cloning Code to jenkings workspace"
+            git url: 'https://github.com/rayyankhan-devops/cloudnative-micro-platform.git', branch: 'main'
+        }
+    }
+}
