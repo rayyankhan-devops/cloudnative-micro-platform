@@ -136,6 +136,82 @@ pipeline {
             }
         }
 
+        // SCA stage to perform Software Composition Analysis for all services
+        stage('SCA') {
+            parallel {
+                stage('Frontend SCA') {
+                    steps {
+                        dir('frontend') {
+                            sh '''
+                                mkdir -p ${WORKSPACE}/sca-reports
+                                npm audit --json > ${WORKSPACE}/sca-reports/frontend-audit.json 2>&1 || true
+                                echo "--- Frontend npm audit summary ---"
+                                npm audit || true
+                            '''
+                        }
+                    }
+                }
+
+                stage('Gateway SCA') {
+                    steps {
+                        dir('gateway') {
+                            sh '''
+                                mkdir -p ${WORKSPACE}/sca-reports
+                                npm audit --json > ${WORKSPACE}/sca-reports/gateway-audit.json 2>&1 || true
+                                echo "--- Gateway npm audit summary ---"
+                                npm audit || true
+                            '''
+                        }
+                    }
+                }
+
+                stage('Payment Service SCA') {
+                    steps {
+                        dir('services/payment-service') {
+                            sh '''
+                                mkdir -p ${WORKSPACE}/sca-reports
+                                npm audit --json > ${WORKSPACE}/sca-reports/payment-service-audit.json 2>&1 || true
+                                echo "--- Payment Service npm audit summary ---"
+                                npm audit || true
+                            '''
+                        }
+                    }
+                }
+
+                stage('Auth Service SCA') {
+                    steps {
+                        dir('services/auth-service') {
+                            sh '''
+                                mkdir -p ${WORKSPACE}/sca-reports
+                                govulncheck -json ./... > ${WORKSPACE}/sca-reports/auth-service-vulncheck.json 2>&1 || true
+                                echo "--- Auth Service govulncheck summary ---"
+                                govulncheck ./... || true
+                            '''
+                        }
+                    }
+                }
+
+                stage('Product Service SCA') {
+                    steps {
+                        dir('services/product-service') {
+                            sh '''
+                                mkdir -p ${WORKSPACE}/sca-reports
+                                .venv/bin/python -m pip install pip-audit --quiet
+                                .venv/bin/python -m pip_audit -r requirements.txt -f json -o ${WORKSPACE}/sca-reports/product-service-audit.json || true
+                                echo "--- Product Service pip-audit summary ---"
+                                .venv/bin/python -m pip_audit -r requirements.txt || true
+                            '''
+                        }
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'sca-reports/**', allowEmptyArchive: true
+                }
+            }
+        }
+
         // SonarQube static code analysis
         stage('SonarQube Analysis') {
             steps {
