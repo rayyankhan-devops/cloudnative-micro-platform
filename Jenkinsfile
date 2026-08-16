@@ -296,30 +296,32 @@ pipeline {
         // Build Docker images for all services
         stage('Build Docker Images') {
             steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'dockerHubCreds',
-                        usernameVariable: 'DOCKERHUB_USER',
-                        passwordVariable: 'DOCKERHUB_PASS'
-                    )
-                ]) {
-                    parallel(
-                        'Frontend Image': {
-                            sh "docker build -t ${DOCKERHUB_USER}/cloudnative-micro-platform:${BUILD_NUMBER} frontend/"
-                        },
-                        'Gateway Image': {
-                            sh "docker build -t ${DOCKERHUB_USER}/cloudnative-micro-gateway:${BUILD_NUMBER} gateway/"
-                        },
-                        'Auth Service Image': {
-                            sh "docker build -t ${DOCKERHUB_USER}/cloudnative-micro-auth:${BUILD_NUMBER} services/auth-service/"
-                        },
-                        'Payment Service Image': {
-                            sh "docker build -t ${DOCKERHUB_USER}/cloudnative-micro-payment:${BUILD_NUMBER} services/payment-service/"
-                        },
-                        'Product Service Image': {
-                            sh "docker build -t ${DOCKERHUB_USER}/cloudnative-micro-product:${BUILD_NUMBER} services/product-service/"
-                        }
-                    )
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'dockerHubCreds',
+                            usernameVariable: 'DOCKERHUB_USER',
+                            passwordVariable: 'DOCKERHUB_PASS'
+                        )
+                    ]) {
+                        parallel(
+                            'Frontend Image': {
+                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-platform:$BUILD_NUMBER frontend/'
+                            },
+                            'Gateway Image': {
+                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-gateway:$BUILD_NUMBER gateway/'
+                            },
+                            'Auth Service Image': {
+                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-auth:$BUILD_NUMBER services/auth-service/'
+                            },
+                            'Payment Service Image': {
+                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-payment:$BUILD_NUMBER services/payment-service/'
+                            },
+                            'Product Service Image': {
+                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-product:$BUILD_NUMBER services/product-service/'
+                            }
+                        )
+                    }
                 }
             }
         }
