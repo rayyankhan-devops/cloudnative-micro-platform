@@ -436,5 +436,24 @@ pipeline {
                 }
             }
         }
+        // Continuous Deployment via Docker Compose
+        stage('Deploy') {
+            steps {
+                echo 'Deploying application stack via Docker Compose...'
+                sh '''
+                    # Ensure .env exists
+                    if [ ! -f .env ]; then
+                        cp .env.example .env
+                    fi
+
+                    # Deploy and recreate containers
+                    docker compose up -d --remove-orphans --force-recreate
+
+                    # Display running container status
+                    sleep 10
+                    docker compose ps
+                '''
+            }
+        }
     }
 }
