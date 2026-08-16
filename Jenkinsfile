@@ -13,6 +13,20 @@ pipeline {
                     url: 'https://github.com/rayyankhan-devops/cloudnative-micro-platform.git'
             }
         }
+        stage('Gitleaks') {
+            steps {
+                sh '''
+                    mkdir -p gitleaks
+
+                    gitleaks detect \
+                        --verbose \
+                        --redact \
+                        --source . \
+                        --report-format json \
+                        --report-path gitleaks/gitleaks-report.json || true
+                '''
+            }
+        }
 
         stage('Linting') {
             parallel {
