@@ -14,17 +14,17 @@ pipeline {
                 echo 'Running linting checks'
 
                 dir('frontend') {
-                    sh 'npm ci'
+                    sh 'npm i'
                     sh 'npm run lint'
                 }
 
                 dir('gateway') {
-                    sh 'npm ci'
+                    sh 'npm i'
                     sh 'npm run lint'
                 }
 
                 dir('services/payment-service') {
-                    sh 'npm ci'
+                    sh 'npm i'
                     sh 'npm run lint'
                 }
 
