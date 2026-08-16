@@ -306,19 +306,19 @@ pipeline {
                     ]) {
                         parallel(
                             'Frontend Image': {
-                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-platform:$BUILD_NUMBER frontend/'
+                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-platform:$BUILD_NUMBER -t $DOCKERHUB_USER/cloudnative-micro-platform:latest frontend/'
                             },
                             'Gateway Image': {
-                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-gateway:$BUILD_NUMBER gateway/'
+                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-gateway:$BUILD_NUMBER -t $DOCKERHUB_USER/cloudnative-micro-gateway:latest gateway/'
                             },
                             'Auth Service Image': {
-                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-auth:$BUILD_NUMBER services/auth-service/'
+                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-auth:$BUILD_NUMBER -t $DOCKERHUB_USER/cloudnative-micro-auth:latest services/auth-service/'
                             },
                             'Payment Service Image': {
-                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-payment:$BUILD_NUMBER services/payment-service/'
+                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-payment:$BUILD_NUMBER -t $DOCKERHUB_USER/cloudnative-micro-payment:latest services/payment-service/'
                             },
                             'Product Service Image': {
-                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-product:$BUILD_NUMBER services/product-service/'
+                                sh 'docker build -t $DOCKERHUB_USER/cloudnative-micro-product:$BUILD_NUMBER -t $DOCKERHUB_USER/cloudnative-micro-product:latest services/product-service/'
                             }
                         )
                     }
@@ -380,6 +380,59 @@ pipeline {
             post {
                 always {
                     archiveArtifacts artifacts: 'trivy-reports/**', allowEmptyArchive: true
+                }
+            }
+        }
+        // Push Docker images to Docker Hub
+        stage('Push Docker Images') {
+            steps {
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'dockerHubCreds',
+                            usernameVariable: 'DOCKERHUB_USER',
+                            passwordVariable: 'DOCKERHUB_PASS'
+                        )
+                    ]) {
+                        sh 'echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin'
+                        parallel(
+                            'Frontend Image Push': {
+                                sh '''
+                                    docker push $DOCKERHUB_USER/cloudnative-micro-platform:$BUILD_NUMBER
+                                    docker push $DOCKERHUB_USER/cloudnative-micro-platform:latest
+                                '''
+                            },
+                            'Gateway Image Push': {
+                                sh '''
+                                    docker push $DOCKERHUB_USER/cloudnative-micro-gateway:$BUILD_NUMBER
+                                    docker push $DOCKERHUB_USER/cloudnative-micro-gateway:latest
+                                '''
+                            },
+                            'Auth Service Image Push': {
+                                sh '''
+                                    docker push $DOCKERHUB_USER/cloudnative-micro-auth:$BUILD_NUMBER
+                                    docker push $DOCKERHUB_USER/cloudnative-micro-auth:latest
+                                '''
+                            },
+                            'Payment Service Image Push': {
+                                sh '''
+                                    docker push $DOCKERHUB_USER/cloudnative-micro-payment:$BUILD_NUMBER
+                                    docker push $DOCKERHUB_USER/cloudnative-micro-payment:latest
+                                '''
+                            },
+                            'Product Service Image Push': {
+                                sh '''
+                                    docker push $DOCKERHUB_USER/cloudnative-micro-product:$BUILD_NUMBER
+                                    docker push $DOCKERHUB_USER/cloudnative-micro-product:latest
+                                '''
+                            }
+                        )
+                    }
+                }
+            }
+            post {
+                always {
+                    sh 'docker logout || true'
                 }
             }
         }
