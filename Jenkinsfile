@@ -459,10 +459,16 @@ pipeline {
         // Dynamic Application Security Testing (DAST) via OWASP ZAP
         stage('OWASP ZAP DAST Scan') {
             steps {
-                echo 'Starting OWASP ZAP dynamic security scans on deployed services...'
+                echo 'Preparing OWASP ZAP scanner...'
                 sh '''
                     mkdir -p ${WORKSPACE}/zap-reports
                     chmod 777 ${WORKSPACE}/zap-reports
+
+                    # Clean dangling build images to free disk space
+                    docker image prune -f || true
+
+                    # Pre-pull lightweight ZAP image once (prevents concurrent disk exhaustion)
+                    docker pull ghcr.io/zaproxy/zaproxy:bare
                 '''
                 script {
                     parallel(
@@ -470,7 +476,7 @@ pipeline {
                             sh '''
                                 docker run --rm --network=host \
                                   -v ${WORKSPACE}/zap-reports:/zap/wrk/:rw \
-                                  -t ghcr.io/zaproxy/zaproxy:stable \
+                                  -t ghcr.io/zaproxy/zaproxy:bare \
                                   zap-baseline.py -t http://100.55.149.140:3000 -r frontend_zap_report.html -J frontend_zap_report.json -I || true
                             '''
                         },
@@ -478,7 +484,7 @@ pipeline {
                             sh '''
                                 docker run --rm --network=host \
                                   -v ${WORKSPACE}/zap-reports:/zap/wrk/:rw \
-                                  -t ghcr.io/zaproxy/zaproxy:stable \
+                                  -t ghcr.io/zaproxy/zaproxy:bare \
                                   zap-baseline.py -t http://100.55.149.140:8000 -r gateway_zap_report.html -J gateway_zap_report.json -I || true
                             '''
                         },
@@ -486,7 +492,7 @@ pipeline {
                             sh '''
                                 docker run --rm --network=host \
                                   -v ${WORKSPACE}/zap-reports:/zap/wrk/:rw \
-                                  -t ghcr.io/zaproxy/zaproxy:stable \
+                                  -t ghcr.io/zaproxy/zaproxy:bare \
                                   zap-api-scan.py -t http://100.55.149.140:8002/openapi.json -f openapi -r product_api_zap_report.html -J product_api_zap_report.json -I || true
                             '''
                         }
