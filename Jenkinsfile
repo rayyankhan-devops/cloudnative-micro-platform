@@ -6,6 +6,7 @@ pipeline {
     }
 
     stages {
+        // Clone the code from the Git repository
         stage('Clone Code') {
             steps {
                 echo 'Cloning code to Jenkins workspace'
@@ -13,6 +14,7 @@ pipeline {
                     url: 'https://github.com/rayyankhan-devops/cloudnative-micro-platform.git'
             }
         }
+        // Gitleaks stage to detect secrets in the codebase
         stage('Gitleaks') {
             steps {
                 sh '''
@@ -24,10 +26,18 @@ pipeline {
                         --source . \
                         --report-format json \
                         --report-path gitleaks/gitleaks-report.json || true
+
+                    if [ -f gitleaks/gitleaks-report.json ] && [ "$(cat gitleaks/gitleaks-report.json | tr -d '[:space:]')" = "[]" ]; then
+                        rm -f gitleaks/gitleaks-report.json
+                        echo "No secrets found. Empty Gitleaks report removed."
+                    else
+                        echo "Gitleaks report contains findings or could not be generated."
+                    fi  
                 '''
             }
         }
 
+        // Linting stage to check code quality for all services
         stage('Linting') {
             parallel {
                 stage('Frontend Lint') {
@@ -81,6 +91,7 @@ pipeline {
             }
         }
 
+        // Testing stage to run tests for all services
         stage('Testing') {
             parallel {
                 stage('Frontend Tests') {
@@ -121,6 +132,24 @@ pipeline {
                             sh 'PYTHONPATH=. .venv/bin/python -m pytest'
                         }
                     }
+                }
+            }
+        }
+
+        // SonarQube static code analysis
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube Server') {
+                    sh "${tool('SonarScanner')}/bin/sonar-scanner"
+                }
+            }
+        }
+
+        // Quality Gate — waits for SonarQube webhook to report pass/fail
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
