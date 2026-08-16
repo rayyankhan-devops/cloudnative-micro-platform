@@ -325,5 +325,63 @@ pipeline {
                 }
             }
         }
+        // Trivy image vulnerability scanning
+        stage('Image Scanning (Trivy)') {
+            steps {
+                script {
+                    withCredentials([
+                        usernamePassword(
+                            credentialsId: 'dockerHubCreds',
+                            usernameVariable: 'DOCKERHUB_USER',
+                            passwordVariable: 'DOCKERHUB_PASS'
+                        )
+                    ]) {
+                        sh 'mkdir -p ${WORKSPACE}/trivy-reports'
+                        parallel(
+                            'Frontend Image Scan': {
+                                sh '''
+                                    trivy image --format json --output ${WORKSPACE}/trivy-reports/frontend-trivy.json --severity HIGH,CRITICAL $DOCKERHUB_USER/cloudnative-micro-platform:$BUILD_NUMBER || true
+                                    echo "--- Frontend Trivy Scan Summary ---"
+                                    trivy image --severity HIGH,CRITICAL $DOCKERHUB_USER/cloudnative-micro-platform:$BUILD_NUMBER || true
+                                '''
+                            },
+                            'Gateway Image Scan': {
+                                sh '''
+                                    trivy image --format json --output ${WORKSPACE}/trivy-reports/gateway-trivy.json --severity HIGH,CRITICAL $DOCKERHUB_USER/cloudnative-micro-gateway:$BUILD_NUMBER || true
+                                    echo "--- Gateway Trivy Scan Summary ---"
+                                    trivy image --severity HIGH,CRITICAL $DOCKERHUB_USER/cloudnative-micro-gateway:$BUILD_NUMBER || true
+                                '''
+                            },
+                            'Auth Service Image Scan': {
+                                sh '''
+                                    trivy image --format json --output ${WORKSPACE}/trivy-reports/auth-service-trivy.json --severity HIGH,CRITICAL $DOCKERHUB_USER/cloudnative-micro-auth:$BUILD_NUMBER || true
+                                    echo "--- Auth Service Trivy Scan Summary ---"
+                                    trivy image --severity HIGH,CRITICAL $DOCKERHUB_USER/cloudnative-micro-auth:$BUILD_NUMBER || true
+                                '''
+                            },
+                            'Payment Service Image Scan': {
+                                sh '''
+                                    trivy image --format json --output ${WORKSPACE}/trivy-reports/payment-service-trivy.json --severity HIGH,CRITICAL $DOCKERHUB_USER/cloudnative-micro-payment:$BUILD_NUMBER || true
+                                    echo "--- Payment Service Trivy Scan Summary ---"
+                                    trivy image --severity HIGH,CRITICAL $DOCKERHUB_USER/cloudnative-micro-payment:$BUILD_NUMBER || true
+                                '''
+                            },
+                            'Product Service Image Scan': {
+                                sh '''
+                                    trivy image --format json --output ${WORKSPACE}/trivy-reports/product-service-trivy.json --severity HIGH,CRITICAL $DOCKERHUB_USER/cloudnative-micro-product:$BUILD_NUMBER || true
+                                    echo "--- Product Service Trivy Scan Summary ---"
+                                    trivy image --severity HIGH,CRITICAL $DOCKERHUB_USER/cloudnative-micro-product:$BUILD_NUMBER || true
+                                '''
+                            }
+                        )
+                    }
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'trivy-reports/**', allowEmptyArchive: true
+                }
+            }
+        }
     }
 }
